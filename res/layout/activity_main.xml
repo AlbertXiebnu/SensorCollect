@@ -1,0 +1,68 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical" android:id="@+id/linearlayout">
+    <EditText  
+    	android:id="@+id/edit_text"
+    	android:layout_width="fill_parent"   
+    	android:layout_height="wrap_content"  
+    	android:maxLength="20"  
+    	android:hint="请输入采样时长..."/> 
+	 <TableLayout
+	    android:layout_width="fill_parent"
+	    android:layout_height="wrap_content"
+	    android:stretchColumns="0,1">
+		<TableRow>
+			 <Button 
+		        android:text="@string/button1Text"
+		      	android:id="@+id/button1"
+		      	android:layout_width="wrap_content"
+		  		android:layout_height="wrap_content" />
+		     <Button 
+		         android:text="@string/button2Text"
+		     	android:id="@+id/button2"
+		     	android:layout_width="wrap_content"
+		 		android:layout_height="wrap_content" />
+        </TableRow>
+    </TableLayout>
+
+    <ProgressBar
+        android:id="@+id/progressBar1"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical" />
+
+	<TableLayout
+	    android:layout_width="fill_parent"
+	    android:layout_height="wrap_content"
+	    android:stretchColumns="0,1">
+		<TableRow>
+		    <TextView
+		        android:id="@+id/textView01"
+                android:textSize="9pt"
+		        android:layout_width="wrap_content"
+		        android:layout_height="wrap_content" />
+	    </TableRow>
+    </TableLayout>
+
+    <TextView
+            android:id="@+id/textView02"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="4dp"
+            android:textSize="12pt"
+            android:textAlignment="center"
+    />
+
+    <Spinner
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/spinner" android:spinnerMode="dialog">
+    </Spinner>
+    <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/ipEditText" android:layout_gravity="center"/>
+
+</LinearLayout>

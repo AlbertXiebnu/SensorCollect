@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">SensorCollect</string>
+    <string name="action_settings">Settings</string>
+    <string name="hello_world">Hello world!</string>
+	<string name="button1Text">开始</string>
+	<string name="button2Text">上传</string>
+	<string name="uploadURL">http://172.16.144.48:8080/dataserver/upload/data</string>
+    <string-array name="actionType">
+        <item>walk</item>
+        <item>run</item>
+        <item>still</item>
+        <item>upstairs</item>
+        <item>downstairs</item>
+        <item>biking</item>
+        <item>driving</item>
+    </string-array>
+</resources>
