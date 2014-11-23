@@ -12,6 +12,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.telephony.TelephonyManager;
 import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -83,12 +84,18 @@ public class MainActivity extends Activity {
 		interval=Math.round(1000/sampleFrequency);
 
         ipEditText= (EditText) findViewById(R.id.ipEditText);
-        ipEditText.setText("172.22.224.40");
+        ipEditText.setText("219.224.30.83");
+
+        //获取手机信息
+        TelephonyManager tm= (TelephonyManager) this.getSystemService(TELEPHONY_SERVICE);
+        final String imei=tm.getDeviceId();
+        final String phoneNumber=tm.getLine1Number();
 
         textView= (TextView) findViewById(R.id.textView02);
         spinner= (Spinner) findViewById(R.id.spinner);
         String[] mItems=getResources().getStringArray(R.array.actionType);
         ArrayAdapter<String> arrayAdapter=new ArrayAdapter<String>(this,android.R.layout.simple_spinner_item,mItems);
+        arrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(arrayAdapter);
         textView.setText(mItems[0]);
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -125,6 +132,8 @@ public class MainActivity extends Activity {
 						if(sensorDataList.size()<numSamples){
 							SensorData sd=mysensors.getSensorData();
                             sd.setType(actionType);
+                            sd.setImei(imei);
+                            sd.setNumber(phoneNumber);
 							sensorDataList.add(sd);
 							bar.incrementProgressBy(interval);
 						}else{

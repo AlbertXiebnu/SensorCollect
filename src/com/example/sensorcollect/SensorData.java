@@ -8,6 +8,8 @@ public class SensorData{
 	private float[] orient;
     private String type;
 	private String timeStamp;
+    private String imei;
+    private String number;
 	public SensorData(){
 		this.acceleration=new float[3];
 		this.gyroscope=new float[3];
@@ -76,12 +78,22 @@ public class SensorData{
 	public void setTimeStamp(String timeStamp) {
 		this.timeStamp = timeStamp;
 	}
-
     public String getType() {
         return type;
     }
-
     public void setType(String type) {
         this.type = type;
+    }
+    public String getImei() {
+        return imei;
+    }
+    public void setImei(String imei) {
+        this.imei = imei;
+    }
+    public String getNumber() {
+        return number;
+    }
+    public void setNumber(String number) {
+        this.number = number;
     }
 }

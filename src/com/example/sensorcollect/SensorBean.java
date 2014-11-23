@@ -19,6 +19,8 @@ public class SensorBean {
     private Double orientZ;
     private String type;
     private String timestamp;
+    private String imei;
+    private String number;
 
     public Integer getId() {
         return id;
@@ -132,12 +134,24 @@ public class SensorBean {
         this.timestamp = timestamp;
     }
 
-
     public String getType() {
         return type;
     }
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public String getImei() {
+        return imei;
+    }
+    public void setImei(String imei) {
+        this.imei = imei;
+    }
+    public String getNumber() {
+        return number;
+    }
+    public void setNumber(String number) {
+        this.number = number;
     }
 }
