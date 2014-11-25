@@ -2,6 +2,7 @@ package com.example.sensorcollect;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -39,10 +40,9 @@ public class MainActivity extends Activity {
 	private int sampleFrequency=50;
 	private int interval;
 	private int numSamples;
-	private boolean isFinished=false; //���������������������������������
+	private boolean isCollecting=false; //���������������������������������
 	private List<SensorData> sensorDataList;
 	private final static int COLLECTION_FINISH=1;
-	private final static int UPLOAD_FINISH=2;
 	private static final String TAG = "sensorcollect";
 
 	private Handler handler=new Handler(){
@@ -52,11 +52,9 @@ public class MainActivity extends Activity {
 			case COLLECTION_FINISH:
 				timer.cancel();
 				mysensors.stop();
-				printSensorData();
+				showSensorData();
 				dbManager.add(sensorDataList);
-				break;
-			case UPLOAD_FINISH:
-				Toast.makeText(getApplicationContext(), "upload successfully", Toast.LENGTH_SHORT).show();
+                setDataPrepared();
 				break;
 			default:
 				break;
@@ -64,7 +62,29 @@ public class MainActivity extends Activity {
 			super.handleMessage(msg);
 		}
 	};
-	
+
+    private void setDataPrepared(){
+        final SharedPreferences pref=getSharedPreferences(TAG,Activity.MODE_PRIVATE);
+        Boolean hasData=pref.getBoolean("hasData",false);
+        if(!hasData){
+            SharedPreferences.Editor editor=pref.edit();
+            editor.putBoolean("hasData",true);
+            editor.commit();
+        }
+    }
+
+    private void resetDataPrepared(){
+        final SharedPreferences pref=getSharedPreferences(TAG,Activity.MODE_PRIVATE);
+        SharedPreferences.Editor editor=pref.edit();
+        editor.putBoolean("hasData",false);
+        editor.commit();
+    }
+
+    private boolean isDataPrepared(){
+        final SharedPreferences pref=getSharedPreferences(TAG,Activity.MODE_PRIVATE);
+        Boolean hasData=pref.getBoolean("hasData",false);
+        return hasData;
+    }
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -82,6 +102,7 @@ public class MainActivity extends Activity {
 		mysensors=new MySensors();
 		sensorDataList=new ArrayList<SensorData>();
 		interval=Math.round(1000/sampleFrequency);
+        isCollecting=false;
 
         ipEditText= (EditText) findViewById(R.id.ipEditText);
         ipEditText.setText("219.224.30.83");
@@ -114,18 +135,19 @@ public class MainActivity extends Activity {
 		bt1.setOnClickListener(new OnClickListener(){
 			@Override
 			public void onClick(View v) {
-				myTextView.setText(""); //������������������
 				sensorDataList.clear();
-				mysensors.start();
-				isFinished=false;
-				String content=editText.getText().toString();
+                myTextView.setText("");
+                final String actionType=textView.getText().toString();
+                String content=editText.getText().toString();
 				int durition=Integer.parseInt(content);
-				durition=durition*1000; //������������������
+				durition=durition*1000;
 				numSamples=durition/interval;
 				bar.setMax(durition);
 				bar.setProgress(0);
-                final String actionType=textView.getText().toString();
-				timer=new Timer();
+
+                mysensors.start(); //打开传感器
+				timer=new Timer(); //开始计时运行
+                isCollecting=true;
 				timer.schedule(new TimerTask(){
 					@Override
 					public void run() {
@@ -137,7 +159,7 @@ public class MainActivity extends Activity {
 							sensorDataList.add(sd);
 							bar.incrementProgressBy(interval);
 						}else{
-							isFinished=true;
+							isCollecting=false;
 							Message msg=new Message();
 							msg.what=COLLECTION_FINISH;
 							handler.sendMessage(msg);
@@ -149,10 +171,18 @@ public class MainActivity extends Activity {
 		bt2.setOnClickListener(new OnClickListener(){
 			@Override
 			public void onClick(View v) {
-                if(isConnected(getApplicationContext())) {
-                    new DataUploadTask(getApplicationContext()).execute();
+                if(!isCollecting) {
+                    if(isDataPrepared()) {
+                        if (isConnected(getApplicationContext())) {
+                            new DataUploadTask(getApplicationContext()).execute();
+                        } else {
+                            Toast.makeText(getApplicationContext(), "web is not connected", Toast.LENGTH_LONG).show();
+                        }
+                    }else{
+                        Toast.makeText(getApplicationContext(),"data is not prepared",Toast.LENGTH_LONG).show();
+                    }
                 }else{
-                    Toast.makeText(getApplicationContext(),"web is not connected",Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(),"collecting data,can not upload",Toast.LENGTH_LONG).show();
                 }
 			}
 		});
@@ -188,6 +218,7 @@ public class MainActivity extends Activity {
         @Override
         protected void onPostExecute(String s) {
             if(s.equals(WebStatus.UPLOAD_SUCCESSFULL)){
+                resetDataPrepared();
                 Toast.makeText(context,"data upload successfully",Toast.LENGTH_LONG).show();
             }else if(s.equals(WebStatus.UPLOAD_FAILED)){
                 Toast.makeText(context,"data upload failed",Toast.LENGTH_LONG).show();
@@ -221,13 +252,13 @@ public class MainActivity extends Activity {
         return true;
     }
 	
-	public void printSensorData(){
+	public void showSensorData(){
         int length=sensorDataList.size();
 		String str="There are "+length+" data in total\n";
 		myTextView.setText(str);
-        for(SensorData sensorData:sensorDataList){
-            System.out.println(sensorData);
-        }
+//        for(SensorData sensorData:sensorDataList){
+//            System.out.println(sensorData);
+//        }
 	}
 
 	@Override
