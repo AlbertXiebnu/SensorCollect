@@ -18,7 +18,7 @@ public class DbHelper extends SQLiteOpenHelper {
 		db.execSQL("CREATE TABLE IF NOT EXISTS sensordata "+
 				"(_id INTEGER PRIMARY KEY AUTOINCREMENT,acc_x DOUBLE,acc_y DOUBLE,acc_z DOUBLE," +
 				"gyro_x DOUBLE,gyro_y DOUBLE,gyro_z DOUBLE,magnet_x DOUBLE,magnet_y DOUBLE,magnet_z DOUBLE," +
-				"orient_x DOUBLE,orient_y DOUBLE,orient_z DOUBLE,type VARCHAR,timestamp VARCHAR,imei VARCHAR," +
+				"orient_x DOUBLE,orient_y DOUBLE,orient_z DOUBLE,type VARCHAR,position VARCHAR,timestamp VARCHAR,imei VARCHAR," +
                 "number VARCHAR)");
 	}
 

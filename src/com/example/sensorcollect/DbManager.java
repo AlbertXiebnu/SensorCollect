@@ -24,11 +24,11 @@ public class DbManager {
 		db.beginTransaction();
 		try{
 			for(SensorData s:datalist){
-				db.execSQL("INSERT INTO "+table+" VALUES(null,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+				db.execSQL("INSERT INTO "+table+" VALUES(null,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
 						new Object[]{s.getAcceleration()[0],s.getAcceleration()[1],s.getAcceleration()[2],
 						s.getGyroscope()[0],s.getGyroscope()[1],s.getGyroscope()[2],s.getMagnetometer()[0],
 						s.getMagnetometer()[1],s.getMagnetometer()[2],s.getOrient()[0],s.getOrient()[1],
-						s.getOrient()[2],s.getType(),s.getTimeStamp(),s.getImei(),s.getNumber()});
+						s.getOrient()[2],s.getType(),s.getPosition(),s.getTimeStamp(),s.getImei(),s.getNumber()});
 			}
 			db.setTransactionSuccessful();
 		}finally{
@@ -73,6 +73,7 @@ public class DbManager {
             sd.setOrientZ(cursor.getDouble(cursor.getColumnIndex("orient_z")));
 
             sd.setType(cursor.getString(cursor.getColumnIndex("type")));
+            sd.setPosition(cursor.getString(cursor.getColumnIndex("position")));
 			sd.setTimestamp(cursor.getString(cursor.getColumnIndex("timestamp")));
             sd.setImei(cursor.getString(cursor.getColumnIndex("imei")));
             sd.setNumber(cursor.getString(cursor.getColumnIndex("number")));

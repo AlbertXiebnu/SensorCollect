@@ -46,19 +46,16 @@
 	    </TableRow>
     </TableLayout>
 
-    <TextView
-            android:id="@+id/textView02"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="4dp"
-            android:textSize="12pt"
-            android:textAlignment="center"
-    />
-
     <Spinner
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/spinner" android:spinnerMode="dialog">
+        android:id="@+id/typespinner" android:spinnerMode="dialog">
+    </Spinner>
+
+    <Spinner
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/positionspinner" android:spinnerMode="dialog">
     </Spinner>
 
     <EditText

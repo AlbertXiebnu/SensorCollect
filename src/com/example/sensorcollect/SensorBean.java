@@ -18,6 +18,7 @@ public class SensorBean {
     private Double orientY;
     private Double orientZ;
     private String type;
+    private String position;
     private String timestamp;
     private String imei;
     private String number;
@@ -153,5 +154,13 @@ public class SensorBean {
     }
     public void setNumber(String number) {
         this.number = number;
+    }
+
+    public String getPosition() {
+        return position;
+    }
+
+    public void setPosition(String position) {
+        this.position = position;
     }
 }

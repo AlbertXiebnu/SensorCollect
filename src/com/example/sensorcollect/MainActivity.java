@@ -22,7 +22,9 @@ import android.widget.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-
+/*
+ * 改进: 增加position字段，增加清除数据对话框。
+ */
 public class MainActivity extends Activity {
 	private DbManager dbManager;
 	private MySensors mysensors;
@@ -31,18 +33,20 @@ public class MainActivity extends Activity {
 	private Button bt1,bt2;
 	private ProgressBar bar;
 	private EditText editText;
-    private TextView textView;
-    private Spinner spinner;
+    private Spinner typespinner;
+    private Spinner postionspinner;
     private EditText ipEditText;
 	private Timer timer;
-	private long delay=0; //������
-	private int defaultSampleTime=3; //���
+	private long delay=0;
+	private int defaultSampleTime=3;
 	private int sampleFrequency=50;
 	private int interval;
 	private int numSamples;
-	private boolean isCollecting=false; //���������������������������������
+	private boolean isCollecting=false;
 	private List<SensorData> sensorDataList;
 	private final static int COLLECTION_FINISH=1;
+    private String actionType;
+    private String positionType;
 	private static final String TAG = "sensorcollect";
 
 	private Handler handler=new Handler(){
@@ -112,18 +116,37 @@ public class MainActivity extends Activity {
         final String imei=tm.getDeviceId();
         final String phoneNumber=tm.getLine1Number();
 
-        textView= (TextView) findViewById(R.id.textView02);
-        spinner= (Spinner) findViewById(R.id.spinner);
+        typespinner= (Spinner) findViewById(R.id.typespinner);
         String[] mItems=getResources().getStringArray(R.array.actionType);
         ArrayAdapter<String> arrayAdapter=new ArrayAdapter<String>(this,android.R.layout.simple_spinner_item,mItems);
         arrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinner.setAdapter(arrayAdapter);
-        textView.setText(mItems[0]);
-        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        typespinner.setAdapter(arrayAdapter);
+        actionType=mItems[0];
+        typespinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
                 String str=adapterView.getItemAtPosition(i).toString();
-                textView.setText(str);
+                actionType=str;
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
+            }
+        });
+
+
+        postionspinner= (Spinner) findViewById(R.id.positionspinner);
+        String[] postionOptions=getResources().getStringArray(R.array.positionType);
+        ArrayAdapter<String> adapter=new ArrayAdapter<String>(this,android.R.layout.simple_spinner_item,postionOptions);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        postionspinner.setAdapter(adapter);
+        positionType=postionOptions[0];
+        postionspinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                String str=adapterView.getItemAtPosition(i).toString();
+                positionType=str;
             }
 
             @Override
@@ -137,7 +160,6 @@ public class MainActivity extends Activity {
 			public void onClick(View v) {
 				sensorDataList.clear();
                 myTextView.setText("");
-                final String actionType=textView.getText().toString();
                 String content=editText.getText().toString();
 				int durition=Integer.parseInt(content);
 				durition=durition*1000;
@@ -154,6 +176,7 @@ public class MainActivity extends Activity {
 						if(sensorDataList.size()<numSamples){
 							SensorData sd=mysensors.getSensorData();
                             sd.setType(actionType);
+                            sd.setPosition(positionType);
                             sd.setImei(imei);
                             sd.setNumber(phoneNumber);
 							sensorDataList.add(sd);

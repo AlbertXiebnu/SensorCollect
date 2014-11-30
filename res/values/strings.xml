@@ -17,4 +17,8 @@
         <item>driving</item>
         <item>test</item>
     </string-array>
+    <string-array name="positionType">
+        <item>trousers pocket</item>
+        <item>coat pocket</item>
+    </string-array>
 </resources>

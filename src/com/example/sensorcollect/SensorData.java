@@ -7,6 +7,7 @@ public class SensorData{
 	private float[] magnetometer;
 	private float[] orient;
     private String type;
+    private String position;
 	private String timeStamp;
     private String imei;
     private String number;
@@ -95,5 +96,11 @@ public class SensorData{
     }
     public void setNumber(String number) {
         this.number = number;
+    }
+    public String getPosition() {
+        return position;
+    }
+    public void setPosition(String position) {
+        this.position = position;
     }
 }
