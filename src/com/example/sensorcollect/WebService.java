@@ -8,6 +8,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.*;
 
 import android.util.Log;
 import org.apache.http.HttpEntity;
@@ -37,47 +38,73 @@ public class WebService {
 		this.context=context;
 	}
 	public boolean upload(){
-		String json_str=dbManager.queryAllInJson();
-		StringBuffer sb=new StringBuffer();
-		try {
-            String url="http://"+ip+":8080/sensordata/upload/data";
-			HttpClient client=new DefaultHttpClient();
-			HttpPost request=new HttpPost(url);
-            System.out.println(json_str);
-            StringEntity stringEntity=new StringEntity(json_str);
+        String url="http://"+ip+":8080/sensordata/upload/data";
+        ExecutorService pool= Executors.newFixedThreadPool(5);
+        int count=dbManager.getRowCount();
+        int start=0;
+        int batchSize=DbManager.getBatch_size();
+        boolean isSuccess=true;
+        List<Future> futures=new ArrayList<Future>();
+        while(start<count){
+            Callable callable=new UploadThread(start,batchSize,url);
+            Future future=pool.submit(callable);
+            futures.add(future);
+            start=start+batchSize;
+        }
+
+        for(Future future:futures){
+            try {
+                if(future.get().toString().equals(WebStatus.UPLOAD_FAILED)){
+                    isSuccess=false;
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            }
+        }
+
+        if(isSuccess) {
+            dbManager.clear();
+        }
+        return isSuccess;
+	}
+
+    class UploadThread implements Callable{
+        private int start;
+        private int limit;
+        private String url;
+
+        public UploadThread(int start,int limit,String url){
+            this.start=start;
+            this.limit=limit;
+            this.url=url;
+        }
+
+        @Override
+        public Object call() throws Exception {
+
+            HttpClient client=new DefaultHttpClient();
+            HttpPost request=new HttpPost(url);
+            String jsonData=dbManager.queryJsonRange(start,limit);
+            StringEntity stringEntity=new StringEntity(jsonData);
             stringEntity.setContentType("application/json");
             request.setEntity(stringEntity);
-
-			HttpResponse response=client.execute(request);
-			HttpEntity entity=response.getEntity();
+            HttpResponse response=client.execute(request);
+            HttpEntity entity=response.getEntity();
             StringBuilder builder=new StringBuilder();
-			if(entity!=null){
-				BufferedReader reader=new BufferedReader(new InputStreamReader(entity.getContent()));
-				String line="";
-				while((line=reader.readLine())!=null){
+            if(entity!=null){
+                BufferedReader reader=new BufferedReader(new InputStreamReader(entity.getContent()));
+                String line="";
+                while((line=reader.readLine())!=null){
                     builder.append(line+"\n");
-				}
-				reader.close();
-			}
-			JSONObject object=new JSONObject(builder.toString());
-			String status=object.getString("status");
-            if(status.equals(WebStatus.UPLOAD_SUCCESSFULL)) {
-                dbManager.clear();
-                return true;
-            }else if(status.equals(WebStatus.UPLOAD_FAILED)){
-                Log.i(TAG,object.getString("errorMessage"));
-                return false;
+                }
+                reader.close();
             }
-		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
-		} catch (ClientProtocolException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (JSONException e) {
-            e.printStackTrace();
+            JSONObject object=new JSONObject(builder.toString());
+            String status=object.getString("status");
+            return status;
         }
-        return false;
-	}
+    }
 
 }

@@ -14,6 +14,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -26,7 +27,7 @@ import java.util.*;
  * 改进: 增加position字段，增加清除数据对话框。
  */
 public class MainActivity extends Activity {
-	private DbManager dbManager;
+	private DoubleBuffer doubleBuffer;
 	private MySensors mysensors;
 	private SensorManager mSensorManager;
 	private TextView myTextView;
@@ -37,13 +38,14 @@ public class MainActivity extends Activity {
     private Spinner postionspinner;
     private EditText ipEditText;
 	private Timer timer;
-	private long delay=0;
+	private long delay=1000;
 	private int defaultSampleTime=3;
 	private int sampleFrequency=50;
 	private int interval;
 	private int numSamples;
 	private boolean isCollecting=false;
-	private List<SensorData> sensorDataList;
+    private boolean isUploading=false;
+
 	private final static int COLLECTION_FINISH=1;
     private String actionType;
     private String positionType;
@@ -57,7 +59,7 @@ public class MainActivity extends Activity {
 				timer.cancel();
 				mysensors.stop();
 				showSensorData();
-				dbManager.add(sensorDataList);
+				doubleBuffer.doFinal();
                 setDataPrepared();
 				break;
 			default:
@@ -92,9 +94,10 @@ public class MainActivity extends Activity {
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
+        Log.i(TAG,"onCreate() call");
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
-		dbManager=new DbManager(this);
+		doubleBuffer=new DoubleBuffer(new DbManager(this));
 		myTextView=(TextView) findViewById(R.id.textView01);
 		bt1=(Button) findViewById(R.id.button1);
 		bt2=(Button) findViewById(R.id.button2);
@@ -104,9 +107,9 @@ public class MainActivity extends Activity {
         editText= (EditText) findViewById(R.id.edit_text);
 		mSensorManager=(SensorManager) this.getSystemService(Context.SENSOR_SERVICE);
 		mysensors=new MySensors();
-		sensorDataList=new ArrayList<SensorData>();
 		interval=Math.round(1000/sampleFrequency);
         isCollecting=false;
+        isUploading=false;
 
         ipEditText= (EditText) findViewById(R.id.ipEditText);
         ipEditText.setText("219.224.30.83");
@@ -158,7 +161,7 @@ public class MainActivity extends Activity {
 		bt1.setOnClickListener(new OnClickListener(){
 			@Override
 			public void onClick(View v) {
-				sensorDataList.clear();
+				doubleBuffer.clear();
                 myTextView.setText("");
                 String content=editText.getText().toString();
 				int durition=Integer.parseInt(content);
@@ -166,20 +169,20 @@ public class MainActivity extends Activity {
 				numSamples=durition/interval;
 				bar.setMax(durition);
 				bar.setProgress(0);
-
                 mysensors.start(); //打开传感器
+
 				timer=new Timer(); //开始计时运行
                 isCollecting=true;
 				timer.schedule(new TimerTask(){
 					@Override
 					public void run() {
-						if(sensorDataList.size()<numSamples){
+						if(doubleBuffer.getCount()<numSamples){
 							SensorData sd=mysensors.getSensorData();
                             sd.setType(actionType);
                             sd.setPosition(positionType);
                             sd.setImei(imei);
                             sd.setNumber(phoneNumber);
-							sensorDataList.add(sd);
+							doubleBuffer.push(sd);
 							bar.incrementProgressBy(interval);
 						}else{
 							isCollecting=false;
@@ -197,7 +200,12 @@ public class MainActivity extends Activity {
                 if(!isCollecting) {
                     if(isDataPrepared()) {
                         if (isConnected(getApplicationContext())) {
-                            new DataUploadTask(getApplicationContext()).execute();
+                            if(isUploading==false) {
+                                isUploading=true;
+                                new DataUploadTask(getApplicationContext()).execute();
+                            }else{
+                                Toast.makeText(getApplicationContext(),"data is uploading",Toast.LENGTH_LONG).show();
+                            }
                         } else {
                             Toast.makeText(getApplicationContext(), "web is not connected", Toast.LENGTH_LONG).show();
                         }
@@ -248,6 +256,7 @@ public class MainActivity extends Activity {
             }else if(s.equals(WebStatus.IP_Illegal)){
                 Toast.makeText(context,"ip config is not correct",Toast.LENGTH_LONG).show();
             }
+            isUploading=false;
         }
     }
 
@@ -276,7 +285,7 @@ public class MainActivity extends Activity {
     }
 	
 	public void showSensorData(){
-        int length=sensorDataList.size();
+        int length=doubleBuffer.getCount();
 		String str="There are "+length+" data in total\n";
 		myTextView.setText(str);
 //        for(SensorData sensorData:sensorDataList){
@@ -287,8 +296,9 @@ public class MainActivity extends Activity {
 	@Override
 	protected void onDestroy() {
 		// TODO Auto-generated method stub
-		dbManager.closeDB();
+		doubleBuffer.release();
 		super.onDestroy();
+        Log.i(TAG,"onDestroy call");
 	}
 
 	@Override
@@ -297,20 +307,27 @@ public class MainActivity extends Activity {
 		getMenuInflater().inflate(R.menu.main, menu);
 		return true;
 	}
-	
-	
-	@Override
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        Log.i(TAG,"onStop Call");
+    }
+
+    @Override
 	protected void onPause() {
 		// TODO Auto-generated method stub
 		super.onPause();
-		mysensors.stop();
+        Log.i(TAG,"onPause call");
+//		mysensors.stop();
 	}
 
 	@Override
 	protected void onResume() {
 		// TODO Auto-generated method stub
 		super.onResume();
-		mysensors.start();
+        Log.i(TAG,"onResume call");
+//		mysensors.start();
 	}
 	
 	private boolean isConnected(Context context){

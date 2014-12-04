@@ -16,10 +16,16 @@ public class DbManager {
 	private SQLiteDatabase db;
 	private DbHelper helper;
     private static final String table="sensordata";
+    private static final int batch_size=2000;
+
 	public DbManager(Context context){
 		helper=new DbHelper(context);
 		db=helper.getWritableDatabase();
 	}
+    public static int getBatch_size(){
+        return batch_size;
+    }
+
 	public void add(List<SensorData> datalist){
 		db.beginTransaction();
 		try{
@@ -46,13 +52,30 @@ public class DbManager {
 //    }
 	
 	public String queryAllInJson(){
-		List<SensorBean> datalist=queryAll();
+		List<SensorBean> datalist=queryAllMiniBatch();
         return JSON.toJSONString(datalist);
 	}
+
+    private List<SensorBean> queryAllMiniBatch(){
+        int count=getRowCount();
+        int offset=0;
+        List<SensorBean> res=new ArrayList<SensorBean>();
+        while(offset<count){
+            List<SensorBean> temp=queryRange(offset,batch_size);
+            res.addAll(temp);
+            offset=offset+batch_size;
+        }
+        return res;
+    }
+
+    public String queryJsonRange(int offset,int limit){
+        List<SensorBean> datalist=queryRange(offset,limit);
+        return JSON.toJSONString(datalist);
+    }
 	
-	private List<SensorBean> queryAll(){
+	private List<SensorBean> queryRange(int offset,int limit){
 		ArrayList<SensorBean> list=new ArrayList<SensorBean>();
-		Cursor cursor=db.rawQuery("SELECT * FROM "+table, null);
+		Cursor cursor=db.rawQuery("SELECT * FROM "+table +" limit "+limit+" offset "+offset, null);
 		while(cursor.moveToNext()){
 			SensorBean sd=new SensorBean();
 			//sd.setId(cursor.getInt(cursor.getColumnIndex("_id")));
@@ -81,6 +104,13 @@ public class DbManager {
 		}
 		return list;
 	}
+
+    public int getRowCount(){
+        String sql="select count(*) from "+table;
+        Cursor cursor=db.rawQuery(sql,null);
+        cursor.moveToFirst();
+        return cursor.getInt(0);
+    }
 	
 	public void closeDB(){
 		db.close();
