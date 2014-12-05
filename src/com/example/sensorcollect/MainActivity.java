@@ -38,7 +38,7 @@ public class MainActivity extends Activity {
     private Spinner postionspinner;
     private EditText ipEditText;
 	private Timer timer;
-	private long delay=1000;
+	private long delay=5000;
 	private int defaultSampleTime=3;
 	private int sampleFrequency=50;
 	private int interval;
