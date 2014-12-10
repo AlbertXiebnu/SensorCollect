@@ -7,6 +7,8 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.media.AudioManager;
+import android.media.SoundPool;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.*;
@@ -19,6 +21,8 @@ import android.widget.*;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
+
+import static android.media.AudioManager.*;
 
 /*
  * 改进: 增加position字段，增加清除数据对话框。
@@ -36,8 +40,12 @@ public class MainActivity extends Activity {
     private Spinner postionspinner;
     private EditText ipEditText;
 	private Timer timer;
+    private SoundPool soundPool;
+    private int mCountdownId;
+    private int mFinishId;
+    private boolean canPlay;
 
-	private final long delay=5000;
+	private final long delay=8000;
 	private int defaultSampleTime=3;
     //采样频率最好是1000ms的整数倍，否则计算timer的间隔会有误差，最后导致采样个数会和预定的不一致。
 	private final int sampleFrequency=25;
@@ -63,6 +71,7 @@ public class MainActivity extends Activity {
 				showSensorData();
 				doubleBuffer.doFinal();
                 setDataPrepared();
+                playMusic(mFinishId,5);
 				break;
 			default:
 				break;
@@ -140,6 +149,7 @@ public class MainActivity extends Activity {
         final String imei=tm.getDeviceId();
         final String phoneNumber=tm.getLine1Number();
 
+        //type spinner
         typespinner= (Spinner) findViewById(R.id.typespinner);
         String[] mItems=getResources().getStringArray(R.array.actionType);
         ArrayAdapter<String> arrayAdapter=new ArrayAdapter<String>(this,android.R.layout.simple_spinner_item,mItems);
@@ -159,7 +169,7 @@ public class MainActivity extends Activity {
             }
         });
 
-
+        //position spinner
         postionspinner= (Spinner) findViewById(R.id.positionspinner);
         String[] postionOptions=getResources().getStringArray(R.array.positionType);
         ArrayAdapter<String> adapter=new ArrayAdapter<String>(this,android.R.layout.simple_spinner_item,postionOptions);
@@ -176,6 +186,21 @@ public class MainActivity extends Activity {
             @Override
             public void onNothingSelected(AdapterView<?> adapterView) {
 
+            }
+        });
+
+        //sound pool
+        soundPool=new SoundPool(1,AudioManager.STREAM_MUSIC,0);
+        mCountdownId=soundPool.load(this,R.raw.countdown,1);
+        mFinishId=soundPool.load(this,R.raw.ring,1);
+        soundPool.setOnLoadCompleteListener(new SoundPool.OnLoadCompleteListener() {
+            @Override
+            public void onLoadComplete(SoundPool soundPool, int sampleId, int status) {
+                if(0==status){
+                    canPlay=true;
+                }else{
+                    canPlay=false;
+                }
             }
         });
 
@@ -199,6 +224,7 @@ public class MainActivity extends Activity {
                     mysensors.start(); //打开传感器
                     timer = new Timer(); //开始计时运行
                     isCollecting = true;
+                    playMusic(mCountdownId,1);
                     timer.schedule(new TimerTask() {
                         @Override
                         public void run() {
@@ -252,6 +278,11 @@ public class MainActivity extends Activity {
         //获取电源锁，防止休眠
         acquireWakeLock();
 	}
+
+    private void playMusic(int mSoundId,int times){
+        float volume=80;
+        soundPool.play(mSoundId,volume,volume,1,times,1.0f);
+    }
 	
 	private class DataUploadTask extends AsyncTask<Void,Void,String>{
         private Context context;
@@ -329,6 +360,7 @@ public class MainActivity extends Activity {
 	protected void onDestroy() {
 		doubleBuffer.release();
         releaseWakeLock(); //释放电源锁
+        soundPool.release();
 		super.onDestroy();
         Log.i(TAG,"onDestroy call");
 	}
