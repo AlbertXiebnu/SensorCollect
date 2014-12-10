@@ -61,7 +61,6 @@ public class WebService {
         }
 
         for(Future future:futures){
-
             try {
                 if(future.get().toString().equals(WebStatus.UPLOAD_FAILED)){
                     isUploadSuccess=false;
@@ -74,7 +73,7 @@ public class WebService {
         }
 
         if(isUploadSuccess){
-            return finishUpload();
+            return finishUpload(dirName);
         }else{
             return false;
         }
@@ -111,13 +110,15 @@ public class WebService {
         return null;
     }
 
-    public boolean finishUpload(){
+    public boolean finishUpload(String dirName){
         String url="http://"+ip+":8080/sensordata/upload/finish";
+        url+="?dirName="+dirName;
         HttpClient client=new DefaultHttpClient();
         HttpGet request=new HttpGet(url);
         try{
             HttpResponse response=client.execute(request);
             if(response.getStatusLine().getStatusCode()== HttpStatus.SC_OK){
+                dbManager.clear();
                 return true;
             }else{
                 return false;

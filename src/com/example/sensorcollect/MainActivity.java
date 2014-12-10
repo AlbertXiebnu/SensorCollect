@@ -37,10 +37,10 @@ public class MainActivity extends Activity {
     private EditText ipEditText;
 	private Timer timer;
 
-	private long delay=5000;
+	private final long delay=5000;
 	private int defaultSampleTime=3;
     //采样频率最好是1000ms的整数倍，否则计算timer的间隔会有误差，最后导致采样个数会和预定的不一致。
-	private int sampleFrequency=25;
+	private final int sampleFrequency=25;
 	private int interval;
 	private int numSamples;
 	private boolean isCollecting=false;
@@ -59,6 +59,7 @@ public class MainActivity extends Activity {
 			case COLLECTION_FINISH:
 				timer.cancel();
 				mysensors.stop();
+                isCollecting=false;
 				showSensorData();
 				doubleBuffer.doFinal();
                 setDataPrepared();
@@ -70,6 +71,7 @@ public class MainActivity extends Activity {
 		}
 	};
 
+    //将数据标识置为true，表示当前数据可以上传
     private void setDataPrepared(){
         final SharedPreferences pref=getSharedPreferences(TAG,Activity.MODE_PRIVATE);
         Boolean hasData=pref.getBoolean("hasData",false);
@@ -80,6 +82,7 @@ public class MainActivity extends Activity {
         }
     }
 
+    //将数据准备好的标志置为false,表示当前没有数据可以上传
     private void resetDataPrepared(){
         final SharedPreferences pref=getSharedPreferences(TAG,Activity.MODE_PRIVATE);
         SharedPreferences.Editor editor=pref.edit();
@@ -179,41 +182,47 @@ public class MainActivity extends Activity {
 		bt1.setOnClickListener(new OnClickListener(){
 			@Override
 			public void onClick(View v) {
-				doubleBuffer.clear();
-                myTextView.setText("");
-                final String content=editText.getText().toString();
-				int durition=Integer.parseInt(content);
-				durition=durition*1000;
-				numSamples=durition/interval;
-				bar.setMax(durition);
-				bar.setProgress(0);
-                final UUID uuid=UUID.randomUUID();
-                counter=0;
-                mysensors.start(); //打开传感器
-				timer=new Timer(); //开始计时运行
-                isCollecting=true;
-				timer.schedule(new TimerTask(){
-					@Override
-					public void run() {
-						if(doubleBuffer.getCount()<numSamples){
-							SensorData sd=mysensors.getSensorData();
-                            sd.setType(actionType);
-                            sd.setPosition(positionType);
-                            sd.setImei(imei);
-                            sd.setNumber(phoneNumber);
-                            sd.setSeq(++counter);
-                            Log.i(TAG,"counter:"+counter);
-                            sd.setUuid(uuid);
-							doubleBuffer.push(sd);
-							bar.incrementProgressBy(interval);
-						}else{
-							isCollecting=false;
-							Message msg=new Message();
-							msg.what=COLLECTION_FINISH;
-							handler.sendMessage(msg);
-						}
-					}
-				}, delay, interval);
+                //如果没有启动采集任务，则启动，否则提示任务正在进行
+                if(!isCollecting) {
+                    doubleBuffer.clear();
+                    myTextView.setText("");
+                    final String content = editText.getText().toString();
+                    int durition = Integer.parseInt(content);
+                    durition = durition * 1000;
+                    numSamples = durition / interval;
+                    bar.setMax(durition);
+                    bar.setProgress(0);
+                    final UUID uuid = UUID.randomUUID();
+                    counter = 0;
+                    final String action=actionType;
+                    final String position=positionType;
+                    mysensors.start(); //打开传感器
+                    timer = new Timer(); //开始计时运行
+                    isCollecting = true;
+                    timer.schedule(new TimerTask() {
+                        @Override
+                        public void run() {
+                            if (doubleBuffer.getCount() < numSamples) {
+                                SensorData sd = mysensors.getSensorData();
+                                sd.setType(action);
+                                sd.setPosition(position);
+                                sd.setImei(imei);
+                                sd.setNumber(phoneNumber);
+                                sd.setSeq(++counter);
+                                Log.i(TAG, "counter:" + counter);
+                                sd.setUuid(uuid);
+                                doubleBuffer.push(sd);
+                                bar.incrementProgressBy(interval);
+                            } else {
+                                Message msg = new Message();
+                                msg.what = COLLECTION_FINISH;
+                                handler.sendMessage(msg);
+                            }
+                        }
+                    }, delay, interval);
+                }else{
+                    Toast.makeText(getApplicationContext(),"collecting data,wait to complete",Toast.LENGTH_LONG).show();
+                }
 			}
 		});
 		bt2.setOnClickListener(new OnClickListener(){
