@@ -1,5 +1,7 @@
 package com.example.sensorcollect;
 
+import java.util.UUID;
+
 public class SensorData{
 	private String id;
 	private float[] acceleration;
@@ -9,6 +11,8 @@ public class SensorData{
     private String type;
     private String position;
 	private String timeStamp;
+    private UUID uuid; //每次采样的唯一标识
+    private int seq; //每个数据在采样中的顺序值
     private String imei;
     private String number;
 	public SensorData(){
@@ -102,5 +106,21 @@ public class SensorData{
     }
     public void setPosition(String position) {
         this.position = position;
+    }
+
+    public UUID getUuid() {
+        return uuid;
+    }
+
+    public void setUuid(UUID uuid) {
+        this.uuid = uuid;
+    }
+
+    public int getSeq() {
+        return seq;
+    }
+
+    public void setSeq(int seq) {
+        this.seq = seq;
     }
 }

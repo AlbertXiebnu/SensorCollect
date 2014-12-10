@@ -1,5 +1,7 @@
 package com.example.sensorcollect;
 
+import java.util.UUID;
+
 /**
  * Created by xie on 14-11-10.
  */
@@ -20,8 +22,12 @@ public class SensorBean {
     private String type;
     private String position;
     private String timestamp;
+    private UUID uuid;
+    private int seq;
     private String imei;
     private String number;
+
+
 
     public Integer getId() {
         return id;
@@ -162,5 +168,21 @@ public class SensorBean {
 
     public void setPosition(String position) {
         this.position = position;
+    }
+
+    public UUID getUuid() {
+        return uuid;
+    }
+
+    public void setUuid(UUID uuid) {
+        this.uuid = uuid;
+    }
+
+    public int getSeq() {
+        return seq;
+    }
+
+    public void setSeq(int seq) {
+        this.seq = seq;
     }
 }

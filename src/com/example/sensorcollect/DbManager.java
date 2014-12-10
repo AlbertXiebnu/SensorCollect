@@ -2,11 +2,9 @@ package com.example.sensorcollect;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import com.alibaba.fastjson.JSON;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -30,11 +28,12 @@ public class DbManager {
 		db.beginTransaction();
 		try{
 			for(SensorData s:datalist){
-				db.execSQL("INSERT INTO "+table+" VALUES(null,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+				db.execSQL("INSERT INTO "+table+" VALUES(null,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
 						new Object[]{s.getAcceleration()[0],s.getAcceleration()[1],s.getAcceleration()[2],
 						s.getGyroscope()[0],s.getGyroscope()[1],s.getGyroscope()[2],s.getMagnetometer()[0],
 						s.getMagnetometer()[1],s.getMagnetometer()[2],s.getOrient()[0],s.getOrient()[1],
-						s.getOrient()[2],s.getType(),s.getPosition(),s.getTimeStamp(),s.getImei(),s.getNumber()});
+						s.getOrient()[2],s.getType(),s.getPosition(),s.getTimeStamp(),s.getUuid().toString(),s.getSeq(),
+                        s.getImei(),s.getNumber()});
 			}
 			db.setTransactionSuccessful();
 		}finally{
@@ -46,27 +45,6 @@ public class DbManager {
         db.delete(table,null,null);
     }
 
-//    private List<String> getAllRecordIds(){
-//        List<String> list=new ArrayList<String>();
-//        Cursor cursor=db.rawQuery("SELECT * FROM "+table,null);
-//    }
-	
-	public String queryAllInJson(){
-		List<SensorBean> datalist=queryAllMiniBatch();
-        return JSON.toJSONString(datalist);
-	}
-
-    private List<SensorBean> queryAllMiniBatch(){
-        int count=getRowCount();
-        int offset=0;
-        List<SensorBean> res=new ArrayList<SensorBean>();
-        while(offset<count){
-            List<SensorBean> temp=queryRange(offset,batch_size);
-            res.addAll(temp);
-            offset=offset+batch_size;
-        }
-        return res;
-    }
 
     public String queryJsonRange(int offset,int limit){
         List<SensorBean> datalist=queryRange(offset,limit);
@@ -98,6 +76,8 @@ public class DbManager {
             sd.setType(cursor.getString(cursor.getColumnIndex("type")));
             sd.setPosition(cursor.getString(cursor.getColumnIndex("position")));
 			sd.setTimestamp(cursor.getString(cursor.getColumnIndex("timestamp")));
+            sd.setUuid(UUID.fromString(cursor.getString(cursor.getColumnIndex("uuid"))));
+            sd.setSeq(cursor.getInt(cursor.getColumnIndex("seq")));
             sd.setImei(cursor.getString(cursor.getColumnIndex("imei")));
             sd.setNumber(cursor.getString(cursor.getColumnIndex("number")));
 			list.add(sd);

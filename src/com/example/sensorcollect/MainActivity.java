@@ -9,10 +9,7 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.AsyncTask;
-import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
+import android.os.*;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.Menu;
@@ -27,6 +24,7 @@ import java.util.*;
  * 改进: 增加position字段，增加清除数据对话框。
  */
 public class MainActivity extends Activity {
+    private PowerManager.WakeLock wakeLock;
 	private DoubleBuffer doubleBuffer;
 	private MySensors mysensors;
 	private SensorManager mSensorManager;
@@ -38,13 +36,16 @@ public class MainActivity extends Activity {
     private Spinner postionspinner;
     private EditText ipEditText;
 	private Timer timer;
+
 	private long delay=5000;
 	private int defaultSampleTime=3;
-	private int sampleFrequency=50;
+    //采样频率最好是1000ms的整数倍，否则计算timer的间隔会有误差，最后导致采样个数会和预定的不一致。
+	private int sampleFrequency=25;
 	private int interval;
 	private int numSamples;
 	private boolean isCollecting=false;
     private boolean isUploading=false;
+    private int counter=0;
 
 	private final static int COLLECTION_FINISH=1;
     private String actionType;
@@ -90,6 +91,23 @@ public class MainActivity extends Activity {
         final SharedPreferences pref=getSharedPreferences(TAG,Activity.MODE_PRIVATE);
         Boolean hasData=pref.getBoolean("hasData",false);
         return hasData;
+    }
+
+
+    private void acquireWakeLock(){
+        if(wakeLock==null){
+            Log.i(TAG,"acquiring wak lock");
+            PowerManager pm= (PowerManager) getSystemService(Context.POWER_SERVICE);
+            wakeLock=pm.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK,this.getClass().getCanonicalName());
+            wakeLock.acquire();
+        }
+    }
+
+    private void releaseWakeLock(){
+        if(null!=wakeLock&&wakeLock.isHeld()){
+            wakeLock.release();
+            wakeLock=null;
+        }
     }
 	
 	@Override
@@ -163,14 +181,15 @@ public class MainActivity extends Activity {
 			public void onClick(View v) {
 				doubleBuffer.clear();
                 myTextView.setText("");
-                String content=editText.getText().toString();
+                final String content=editText.getText().toString();
 				int durition=Integer.parseInt(content);
 				durition=durition*1000;
 				numSamples=durition/interval;
 				bar.setMax(durition);
 				bar.setProgress(0);
+                final UUID uuid=UUID.randomUUID();
+                counter=0;
                 mysensors.start(); //打开传感器
-
 				timer=new Timer(); //开始计时运行
                 isCollecting=true;
 				timer.schedule(new TimerTask(){
@@ -182,6 +201,9 @@ public class MainActivity extends Activity {
                             sd.setPosition(positionType);
                             sd.setImei(imei);
                             sd.setNumber(phoneNumber);
+                            sd.setSeq(++counter);
+                            Log.i(TAG,"counter:"+counter);
+                            sd.setUuid(uuid);
 							doubleBuffer.push(sd);
 							bar.incrementProgressBy(interval);
 						}else{
@@ -218,7 +240,8 @@ public class MainActivity extends Activity {
 			}
 		});
 
-
+        //获取电源锁，防止休眠
+        acquireWakeLock();
 	}
 	
 	private class DataUploadTask extends AsyncTask<Void,Void,String>{
@@ -295,8 +318,8 @@ public class MainActivity extends Activity {
 
 	@Override
 	protected void onDestroy() {
-		// TODO Auto-generated method stub
 		doubleBuffer.release();
+        releaseWakeLock(); //释放电源锁
 		super.onDestroy();
         Log.i(TAG,"onDestroy call");
 	}
@@ -316,18 +339,14 @@ public class MainActivity extends Activity {
 
     @Override
 	protected void onPause() {
-		// TODO Auto-generated method stub
 		super.onPause();
         Log.i(TAG,"onPause call");
-//		mysensors.stop();
 	}
 
 	@Override
 	protected void onResume() {
-		// TODO Auto-generated method stub
 		super.onResume();
         Log.i(TAG,"onResume call");
-//		mysensors.start();
 	}
 	
 	private boolean isConnected(Context context){
@@ -347,10 +366,12 @@ public class MainActivity extends Activity {
 		private Sensor mSensor; //magnetometer Sensor
 		private float[] rotate=new float[9];
 		private float[] incline=new float[9];
-		private SensorData sensorData=new SensorData();
+		private SensorData sensorData;
+        private SimpleDateFormat sdf;
 		
 		public MySensors(){
-			// TODO Auto-generated constructor stub
+            sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            sensorData=new SensorData();
 			aSensor=mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 			gSensor=mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
 			mSensor=mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
@@ -381,7 +402,6 @@ public class MainActivity extends Activity {
 		
 		@Override
 		public void onSensorChanged(SensorEvent event) {
-			// TODO Auto-generated method stub
 			if(event.sensor.getType()==Sensor.TYPE_ACCELEROMETER){
 				sensorData.setAcceleration(event.values);
 			}else if(event.sensor.getType()==Sensor.TYPE_GYROSCOPE){
@@ -395,7 +415,6 @@ public class MainActivity extends Activity {
 			SensorManager.getRotationMatrix(rotate, incline, sensorData.getAcceleration(), sensorData.getMagnetometer());
 			SensorManager.getOrientation(rotate, orient);
 			sensorData.setOrient(orient);
-			SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 			sensorData.setTimeStamp(sdf.format(new Date()));
 		}
 		
