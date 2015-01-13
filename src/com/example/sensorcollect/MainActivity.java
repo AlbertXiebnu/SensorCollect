@@ -39,6 +39,9 @@ public class MainActivity extends Activity {
     private Spinner typespinner;
     private Spinner postionspinner;
     private EditText ipEditText;
+    private TextView tv_orient0;
+    private TextView tv_orient1;
+    private TextView tv_orient2;
 	private Timer timer;
     private SoundPool soundPool;
     private int mCountdownId;
@@ -56,6 +59,7 @@ public class MainActivity extends Activity {
     private int counter=0;
 
 	private final static int COLLECTION_FINISH=1;
+    private final static int DISPLAY_ORIENT=2;
     private String actionType;
     private String positionType;
 	private static final String TAG = "sensorcollect";
@@ -64,17 +68,23 @@ public class MainActivity extends Activity {
 		@Override
 		public void handleMessage(Message msg) {
 			switch(msg.what){
-			case COLLECTION_FINISH:
-				timer.cancel();
-				mysensors.stop();
-                isCollecting=false;
-				showSensorData();
-				doubleBuffer.doFinal();
-                setDataPrepared();
-                playMusic(mFinishId,5);
-				break;
-			default:
-				break;
+			    case COLLECTION_FINISH:
+				    timer.cancel();
+				    mysensors.stop();
+                    isCollecting=false;
+				    showSensorData();
+				    doubleBuffer.doFinal();
+                    setDataPrepared();
+                    playMusic(mFinishId,5);
+				    break;
+                case DISPLAY_ORIENT:
+                    Bundle data=msg.getData();
+                    tv_orient0.setText(String.valueOf(data.getFloat("orient0")));
+                    tv_orient1.setText(String.valueOf(data.getFloat("orient1")));
+                    tv_orient2.setText(String.valueOf(data.getFloat("orient2")));
+                    break;
+			    default:
+				    break;
 			}
 			super.handleMessage(msg);
 		}
@@ -135,6 +145,9 @@ public class MainActivity extends Activity {
 		editText=(EditText) findViewById(R.id.edit_text);
 		editText.setText(String.valueOf(this.defaultSampleTime));
         editText= (EditText) findViewById(R.id.edit_text);
+        tv_orient0= (TextView) findViewById(R.id.orient0);
+        tv_orient1= (TextView) findViewById(R.id.orient1);
+        tv_orient2= (TextView) findViewById(R.id.orient2);
 		mSensorManager=(SensorManager) this.getSystemService(Context.SENSOR_SERVICE);
 		mysensors=new MySensors();
 		interval=Math.round(1000/sampleFrequency);
@@ -239,6 +252,14 @@ public class MainActivity extends Activity {
                                 sd.setUuid(uuid);
                                 doubleBuffer.push(sd);
                                 bar.incrementProgressBy(interval);
+//                                Bundle bundle=new Bundle();
+//                                bundle.putFloat("orient0",sd.getOrient()[0]);
+//                                bundle.putFloat("orient1",sd.getOrient()[1]);
+//                                bundle.putFloat("orient2",sd.getOrient()[2]);
+//                                Message msg=new Message();
+//                                msg.setData(bundle);
+//                                msg.what=DISPLAY_ORIENT;
+//                                handler.sendMessage(msg);
                             } else {
                                 Message msg = new Message();
                                 msg.what = COLLECTION_FINISH;

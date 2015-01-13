@@ -152,12 +152,15 @@ public class SensorBean {
     public String getImei() {
         return imei;
     }
+
     public void setImei(String imei) {
         this.imei = imei;
     }
+
     public String getNumber() {
         return number;
     }
+
     public void setNumber(String number) {
         this.number = number;
     }
