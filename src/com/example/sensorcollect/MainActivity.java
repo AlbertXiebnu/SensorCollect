@@ -453,9 +453,9 @@ public class MainActivity extends Activity {
 		}
 		
 		public void start(){
-			mSensorManager.registerListener(this, aSensor, SensorManager.SENSOR_DELAY_NORMAL);
-			mSensorManager.registerListener(this, gSensor, SensorManager.SENSOR_DELAY_NORMAL);
-			mSensorManager.registerListener(this, mSensor, SensorManager.SENSOR_DELAY_NORMAL);
+			mSensorManager.registerListener(this, aSensor, SensorManager.SENSOR_DELAY_GAME);
+			mSensorManager.registerListener(this, gSensor, SensorManager.SENSOR_DELAY_GAME);
+			mSensorManager.registerListener(this, mSensor, SensorManager.SENSOR_DELAY_GAME);
 		}
 		
 		public void stop(){
