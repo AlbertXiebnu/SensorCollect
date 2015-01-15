@@ -248,7 +248,7 @@ public class MainActivity extends Activity {
                                 sd.setImei(imei);
                                 sd.setNumber(phoneNumber);
                                 sd.setSeq(++counter);
-                                Log.i(TAG, "counter:" + counter);
+//                                Log.i(TAG, "counter:" + counter);
                                 sd.setUuid(uuid);
                                 doubleBuffer.push(sd);
                                 bar.incrementProgressBy(interval);
@@ -426,6 +426,8 @@ public class MainActivity extends Activity {
 		private Sensor aSensor; //acceleration
 		private Sensor gSensor; //gyroscopeSensor
 		private Sensor mSensor; //magnetometer Sensor
+        private Sensor gravitySensor; //gravity sensor
+        private Sensor linearAccSensor; //linear accelaration
 		private float[] rotate=new float[9];
 		private float[] incline=new float[9];
 		private SensorData sensorData;
@@ -437,6 +439,8 @@ public class MainActivity extends Activity {
 			aSensor=mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 			gSensor=mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
 			mSensor=mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+            gravitySensor=mSensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY);
+            linearAccSensor=mSensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
 		}
 		
 //		public String getStatus(){
@@ -456,6 +460,8 @@ public class MainActivity extends Activity {
 			mSensorManager.registerListener(this, aSensor, SensorManager.SENSOR_DELAY_GAME);
 			mSensorManager.registerListener(this, gSensor, SensorManager.SENSOR_DELAY_GAME);
 			mSensorManager.registerListener(this, mSensor, SensorManager.SENSOR_DELAY_GAME);
+            mSensorManager.registerListener(this,gravitySensor,SensorManager.SENSOR_DELAY_GAME);
+            mSensorManager.registerListener(this,linearAccSensor,SensorManager.SENSOR_DELAY_GAME);
 		}
 		
 		public void stop(){
@@ -464,19 +470,28 @@ public class MainActivity extends Activity {
 		
 		@Override
 		public void onSensorChanged(SensorEvent event) {
+            boolean flag=false;
 			if(event.sensor.getType()==Sensor.TYPE_ACCELEROMETER){
 				sensorData.setAcceleration(event.values);
 			}else if(event.sensor.getType()==Sensor.TYPE_GYROSCOPE){
 				sensorData.setGyroscope(event.values);
 			}else if(event.sensor.getType()==Sensor.TYPE_MAGNETIC_FIELD){
 				sensorData.setMagnetometer(event.values);
-			}else{
+                flag=true;
+			}else if(event.sensor.getType()==Sensor.TYPE_GRAVITY){
+                sensorData.setGravity(event.values);
+                flag=true;
+            }else if(event.sensor.getType()==Sensor.TYPE_LINEAR_ACCELERATION){
+                sensorData.setLinearAcc(event.values);
+            }else{
 				return;
 			}
-			float[] orient=new float[3];
-			SensorManager.getRotationMatrix(rotate, incline, sensorData.getAcceleration(), sensorData.getMagnetometer());
-			SensorManager.getOrientation(rotate, orient);
-			sensorData.setOrient(orient);
+            if(flag==true) {
+                float[] orient = new float[3];
+                SensorManager.getRotationMatrix(rotate, incline, sensorData.getGravity(), sensorData.getMagnetometer());
+                SensorManager.getOrientation(rotate, orient);
+                sensorData.setOrient(orient);
+            }
 			sensorData.setTimeStamp(sdf.format(new Date()));
 		}
 		

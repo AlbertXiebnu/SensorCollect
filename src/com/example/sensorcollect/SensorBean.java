@@ -19,6 +19,12 @@ public class SensorBean {
     private Double orientX;
     private Double orientY;
     private Double orientZ;
+    private Double gravityX;
+    private Double gravityY;
+    private Double gravityZ;
+    private Double linearAccX;
+    private Double linearAccY;
+    private Double linearAccZ;
     private String type;
     private String position;
     private String timestamp;
@@ -187,5 +193,53 @@ public class SensorBean {
 
     public void setSeq(int seq) {
         this.seq = seq;
+    }
+
+    public Double getGravityX() {
+        return gravityX;
+    }
+
+    public void setGravityX(Double gravityX) {
+        this.gravityX = gravityX;
+    }
+
+    public Double getGravityY() {
+        return gravityY;
+    }
+
+    public void setGravityY(Double gravityY) {
+        this.gravityY = gravityY;
+    }
+
+    public Double getGravityZ() {
+        return gravityZ;
+    }
+
+    public void setGravityZ(Double gravityZ) {
+        this.gravityZ = gravityZ;
+    }
+
+    public Double getLinearAccX() {
+        return linearAccX;
+    }
+
+    public void setLinearAccX(Double linearAccX) {
+        this.linearAccX = linearAccX;
+    }
+
+    public Double getLinearAccY() {
+        return linearAccY;
+    }
+
+    public void setLinearAccY(Double linearAccY) {
+        this.linearAccY = linearAccY;
+    }
+
+    public Double getLinearAccZ() {
+        return linearAccZ;
+    }
+
+    public void setLinearAccZ(Double linearAccZ) {
+        this.linearAccZ = linearAccZ;
     }
 }

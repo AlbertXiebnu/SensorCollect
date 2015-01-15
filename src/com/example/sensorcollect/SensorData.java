@@ -8,6 +8,8 @@ public class SensorData{
 	private float[] gyroscope;
 	private float[] magnetometer;
 	private float[] orient;
+    private float[] gravity;
+    private float[] linearAcc;
     private String type;
     private String position;
 	private String timeStamp;
@@ -20,6 +22,8 @@ public class SensorData{
 		this.gyroscope=new float[3];
 		this.magnetometer=new float[3];
 		this.orient=new float[3];
+        this.gravity=new float[3];
+        this.linearAcc=new float[3];
 	}
 
     public SensorData clone(){
@@ -30,6 +34,8 @@ public class SensorData{
             data.gyroscope[i]=this.gyroscope[i];
             data.magnetometer[i]=this.magnetometer[i];
             data.orient[i]=this.orient[i];
+            data.gravity[i]=this.gravity[i];
+            data.linearAcc[i]=this.linearAcc[i];
         }
         data.timeStamp=this.timeStamp;
         return data;
@@ -77,6 +83,23 @@ public class SensorData{
 	public void setOrient(float[] orient) {
 		this.orient = orient;
 	}
+
+    public float[] getGravity(){
+        return gravity;
+    }
+
+    public void setGravity(float[] gravity){
+        this.gravity=gravity;
+    }
+
+    public float[] getLinearAcc(){
+        return linearAcc;
+    }
+
+    public void setLinearAcc(float[] linearAcc){
+        this.linearAcc=linearAcc;
+    }
+
 	public String getTimeStamp() {
 		return timeStamp;
 	}

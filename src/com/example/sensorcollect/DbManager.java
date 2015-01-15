@@ -28,12 +28,13 @@ public class DbManager {
 		db.beginTransaction();
 		try{
 			for(SensorData s:datalist){
-				db.execSQL("INSERT INTO "+table+" VALUES(null,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+				db.execSQL("INSERT INTO "+table+" VALUES(null,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
 						new Object[]{s.getAcceleration()[0],s.getAcceleration()[1],s.getAcceleration()[2],
 						s.getGyroscope()[0],s.getGyroscope()[1],s.getGyroscope()[2],s.getMagnetometer()[0],
 						s.getMagnetometer()[1],s.getMagnetometer()[2],s.getOrient()[0],s.getOrient()[1],
-						s.getOrient()[2],s.getType(),s.getPosition(),s.getTimeStamp(),s.getUuid().toString(),s.getSeq(),
-                        s.getImei(),s.getNumber()});
+						s.getOrient()[2],s.getGravity()[0],s.getGravity()[1],s.getGravity()[2],s.getLinearAcc()[0],
+                        s.getLinearAcc()[1],s.getLinearAcc()[2],s.getType(),s.getPosition(),s.getTimeStamp(),
+                        s.getUuid().toString(),s.getSeq(),s.getImei(),s.getNumber()});
 			}
 			db.setTransactionSuccessful();
 		}finally{
@@ -72,6 +73,14 @@ public class DbManager {
 			sd.setOrientX(cursor.getDouble(cursor.getColumnIndex("orient_x")));
             sd.setOrientY(cursor.getDouble(cursor.getColumnIndex("orient_y")));
             sd.setOrientZ(cursor.getDouble(cursor.getColumnIndex("orient_z")));
+
+            sd.setGravityX(cursor.getDouble(cursor.getColumnIndex("gravity_x")));
+            sd.setGravityY(cursor.getDouble(cursor.getColumnIndex("gravity_y")));
+            sd.setGravityZ(cursor.getDouble(cursor.getColumnIndex("gravity_z")));
+
+            sd.setLinearAccX(cursor.getDouble(cursor.getColumnIndex("linearAcc_x")));
+            sd.setLinearAccY(cursor.getDouble(cursor.getColumnIndex("linearAcc_y")));
+            sd.setLinearAccZ(cursor.getDouble(cursor.getColumnIndex("linearAcc_z")));
 
             sd.setType(cursor.getString(cursor.getColumnIndex("type")));
             sd.setPosition(cursor.getString(cursor.getColumnIndex("position")));
