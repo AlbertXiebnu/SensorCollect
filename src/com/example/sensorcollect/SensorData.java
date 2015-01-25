@@ -16,7 +16,7 @@ public class SensorData{
     private UUID uuid; //每次采样的唯一标识
     private int seq; //每个数据在采样中的顺序值
     private String imei;
-    private String number;
+    private String direction;
 	public SensorData(){
 		this.acceleration=new float[3];
 		this.gyroscope=new float[3];
@@ -118,12 +118,14 @@ public class SensorData{
     public void setImei(String imei) {
         this.imei = imei;
     }
-    public String getNumber() {
-        return number;
+
+    public String getDirection() {
+        return direction;
     }
-    public void setNumber(String number) {
-        this.number = number;
+    public void setDirection(String direction) {
+        this.direction = direction;
     }
+
     public String getPosition() {
         return position;
     }

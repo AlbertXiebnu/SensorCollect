@@ -38,10 +38,8 @@ public class MainActivity extends Activity {
 	private EditText editText;
     private Spinner typespinner;
     private Spinner postionspinner;
+    private Spinner directionspinner;
     private EditText ipEditText;
-    private TextView tv_orient0;
-    private TextView tv_orient1;
-    private TextView tv_orient2;
 	private Timer timer;
     private SoundPool soundPool;
     private int mCountdownId;
@@ -62,6 +60,7 @@ public class MainActivity extends Activity {
     private final static int DISPLAY_ORIENT=2;
     private String actionType;
     private String positionType;
+    private String directionType;
 	private static final String TAG = "sensorcollect";
 
 	private Handler handler=new Handler(){
@@ -79,9 +78,6 @@ public class MainActivity extends Activity {
 				    break;
                 case DISPLAY_ORIENT:
                     Bundle data=msg.getData();
-                    tv_orient0.setText(String.valueOf(data.getFloat("orient0")));
-                    tv_orient1.setText(String.valueOf(data.getFloat("orient1")));
-                    tv_orient2.setText(String.valueOf(data.getFloat("orient2")));
                     break;
 			    default:
 				    break;
@@ -145,22 +141,17 @@ public class MainActivity extends Activity {
 		editText=(EditText) findViewById(R.id.edit_text);
 		editText.setText(String.valueOf(this.defaultSampleTime));
         editText= (EditText) findViewById(R.id.edit_text);
-        tv_orient0= (TextView) findViewById(R.id.orient0);
-        tv_orient1= (TextView) findViewById(R.id.orient1);
-        tv_orient2= (TextView) findViewById(R.id.orient2);
 		mSensorManager=(SensorManager) this.getSystemService(Context.SENSOR_SERVICE);
 		mysensors=new MySensors();
 		interval=Math.round(1000/sampleFrequency);
         isCollecting=false;
         isUploading=false;
-
         ipEditText= (EditText) findViewById(R.id.ipEditText);
         ipEditText.setText("219.224.30.83");
 
         //获取手机信息
         TelephonyManager tm= (TelephonyManager) this.getSystemService(TELEPHONY_SERVICE);
         final String imei=tm.getDeviceId();
-        final String phoneNumber=tm.getLine1Number();
 
         //type spinner
         typespinner= (Spinner) findViewById(R.id.typespinner);
@@ -202,6 +193,27 @@ public class MainActivity extends Activity {
             }
         });
 
+        //direction spinner
+        directionspinner= (Spinner) findViewById(R.id.directionspinner);
+        String[] directionOption=getResources().getStringArray(R.array.directionType);
+        ArrayAdapter<String> dirAdapter=new ArrayAdapter<String>(this,android.R.layout.simple_spinner_item,directionOption);
+        dirAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        directionspinner.setAdapter(dirAdapter);
+        directionType=directionOption[0];
+        directionspinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener(){
+
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                String str=adapterView.getItemAtPosition(i).toString();
+                directionType=str;
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
         //sound pool
         soundPool=new SoundPool(1,AudioManager.STREAM_MUSIC,0);
         mCountdownId=soundPool.load(this,R.raw.countdown,1);
@@ -234,6 +246,7 @@ public class MainActivity extends Activity {
                     counter = 0;
                     final String action=actionType;
                     final String position=positionType;
+                    final String direction=directionType;
                     mysensors.start(); //打开传感器
                     timer = new Timer(); //开始计时运行
                     isCollecting = true;
@@ -246,7 +259,7 @@ public class MainActivity extends Activity {
                                 sd.setType(action);
                                 sd.setPosition(position);
                                 sd.setImei(imei);
-                                sd.setNumber(phoneNumber);
+                                sd.setDirection(direction);
                                 sd.setSeq(++counter);
 //                                Log.i(TAG, "counter:" + counter);
                                 sd.setUuid(uuid);

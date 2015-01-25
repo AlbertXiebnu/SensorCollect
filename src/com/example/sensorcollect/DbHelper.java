@@ -20,7 +20,7 @@ public class DbHelper extends SQLiteOpenHelper {
 				"gyro_x DOUBLE,gyro_y DOUBLE,gyro_z DOUBLE,magnet_x DOUBLE,magnet_y DOUBLE,magnet_z DOUBLE," +
 				"orient_x DOUBLE,orient_y DOUBLE,orient_z DOUBLE,gravity_x DOUBLE,gravity_y DOUBLE,gravity_z DOUBLE," +
                 "linearAcc_x DOUBLE,linearAcc_y DOUBLE,linearAcc_z DOUBLE,type VARCHAR,position VARCHAR,timestamp VARCHAR," +
-                "uuid VARCHAR,seq INT,imei VARCHAR,number VARCHAR)");
+                "uuid VARCHAR,seq INT,imei VARCHAR,direction VARCHAR)");
 	}
 
 	@Override

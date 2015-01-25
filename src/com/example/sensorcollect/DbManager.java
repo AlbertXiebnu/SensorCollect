@@ -34,7 +34,7 @@ public class DbManager {
 						s.getMagnetometer()[1],s.getMagnetometer()[2],s.getOrient()[0],s.getOrient()[1],
 						s.getOrient()[2],s.getGravity()[0],s.getGravity()[1],s.getGravity()[2],s.getLinearAcc()[0],
                         s.getLinearAcc()[1],s.getLinearAcc()[2],s.getType(),s.getPosition(),s.getTimeStamp(),
-                        s.getUuid().toString(),s.getSeq(),s.getImei(),s.getNumber()});
+                        s.getUuid().toString(),s.getSeq(),s.getImei(),s.getDirection()});
 			}
 			db.setTransactionSuccessful();
 		}finally{
@@ -88,7 +88,7 @@ public class DbManager {
             sd.setUuid(UUID.fromString(cursor.getString(cursor.getColumnIndex("uuid"))));
             sd.setSeq(cursor.getInt(cursor.getColumnIndex("seq")));
             sd.setImei(cursor.getString(cursor.getColumnIndex("imei")));
-            sd.setNumber(cursor.getString(cursor.getColumnIndex("number")));
+            sd.setDirection(cursor.getString(cursor.getColumnIndex("direction")));
 			list.add(sd);
 		}
 		return list;

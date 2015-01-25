@@ -31,7 +31,7 @@ public class SensorBean {
     private UUID uuid;
     private int seq;
     private String imei;
-    private String number;
+    private String direction;
 
 
 
@@ -163,12 +163,12 @@ public class SensorBean {
         this.imei = imei;
     }
 
-    public String getNumber() {
-        return number;
+    public String getDirection() {
+        return direction;
     }
 
-    public void setNumber(String number) {
-        this.number = number;
+    public void setDirection(String direction) {
+        this.direction = direction;
     }
 
     public String getPosition() {
