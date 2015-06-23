@@ -23,6 +23,8 @@
     <string-array name="positionType">
         <item>trousers pocket</item>
         <item>coat pocket</item>
+        <item>hand</item>
+        <item>handbag</item>
     </string-array>
     <string-array name="directionType">
         <item>vertical_inside</item>
