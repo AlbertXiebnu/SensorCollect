@@ -10,6 +10,7 @@ import java.util.List;
  * 两个缓冲栈
  * 1. current ：把新来的数据压人current
  * 2. back：执行持久化操作，完成后清空
+ * test
  */
 public class DoubleBuffer {
     private DbManager dbManager;
